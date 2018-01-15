@@ -1,0 +1,34 @@
+How to Install Anaconda + OpenCV:
+	https://www.youtube.com/watch?v=82Sx57q-5DQ	
+
+Kivy Install:
+	https://kivy.org/docs/installation/installation-windows.html
+
+
+Kivy Tutorials - 
+	https://www.youtube.com/watch?v=B79miUFD_ss
+	https://kivy.org/docs/gettingstarted/first_app.html
+
+
+
+OpenCV - 
+	https://www.superdatascience.com/opencv-face-detection/
+	https://www.pyimagesearch.com/2015/09/21/opencv-track-object-movement/
+	http://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_tutorials.html	
+	Siraj Strawberry Recognition:
+		https://www.youtube.com/watch?v=OnWIYI6-4Ss
+	OpenCV 101: A Practical Guide to the Open Computer Vision Library (1 of 4)
+		https://www.youtube.com/watch?v=jKtQxvzp1A0
+
+
+
+SimpleCV Stuff: http://simplecv.org/
+
+	General Intro and Capabilities - https://www.youtube.com/watch?v=UZSm7Q2bZoc
+	White Circle Detection - https://www.youtube.com/watch?v=jihxqg3kr-g
+
+
+Python Concurrency:
+	http://www.dabeaz.com/usenix2009/concurrent/
+	https://pymotw.com/2/multiprocessing/basics.html
+	python multiprocessing
