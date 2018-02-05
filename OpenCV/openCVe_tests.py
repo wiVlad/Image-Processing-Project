@@ -2,7 +2,7 @@ import cv2
 
 faceCascade = cv2.CascadeClassifier('C:\\Users\\vladw\\Anaconda3\\Library\\etc\\haarcascades\\haarcascade_frontalface_default.xml')
 
-video_capture = cv2.VideoCapture(0)
+video_capture = cv2.VideoCapture(1)
 
 while True:
     # Capture frame-by-frame

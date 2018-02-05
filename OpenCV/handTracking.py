@@ -116,6 +116,7 @@ def main():
 			roiHist = cv2.normalize(roiHist, roiHist, 0, 255, cv2.NORM_MINMAX)
 			roiBox = (tl[0], tl[1], br[0], br[1])
 
+		
 		# if the 'q' key is pressed, stop the loop
 		elif key == ord("q"):
 			break

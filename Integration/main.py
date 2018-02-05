@@ -2,12 +2,14 @@ import multiprocessing
 from queue import Queue
 
 from ImageProc.ImProc import maskHSV
+from ImageProc.camShift import CamShift
 from GameEngine.GameApp import PongApp 
 
 
 # A thread that produces data
 def producer(out_q):
-	maskHSV(out_q)
+	CamShift(out_q)
+	#maskHSV(out_q)
 
 # A thread that consumes data
 def consumer(in_q):

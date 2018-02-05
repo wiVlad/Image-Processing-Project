@@ -4,6 +4,8 @@ from kivy.properties import NumericProperty, ReferenceListProperty,\
     ObjectProperty
 from kivy.vector import Vector
 from kivy.clock import Clock
+import multiprocessing
+from queue import Queue
 
 
 class PongPaddle(Widget):
@@ -56,6 +58,7 @@ class PongGame(Widget):
             self.serve_ball(vel=(-4, 0))
 
     def on_touch_move(self, touch):
+        print(touch)
         if touch.x < self.width / 3:
             self.player1.center_y = touch.y
         if touch.x > self.width - self.width / 3:
@@ -63,12 +66,13 @@ class PongGame(Widget):
 
 
 class PongApp(App):
-    def build(self):
-        game = PongGame()
+    def build(self,x):
+        game = PongGame(x)
         game.serve_ball()
         Clock.schedule_interval(game.update, 1.0 / 60.0)
         return game
 
 
 if __name__ == '__main__':
-    PongApp().run()
+    q = multiprocessing.Queue()
+    PongApp().run(q)

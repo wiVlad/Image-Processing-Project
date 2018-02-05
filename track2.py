@@ -92,6 +92,15 @@ def main():
 			pts2 = np.int0(cv2.boxPoints(r2))
 			cv2.polylines(frame, [pts1], True, (0, 255, 0), 2)
 			cv2.polylines(frame, [pts2], True, (0, 255, 0), 2)
+			center_x1 = (pts1[0][0]+pts1[1][0]+pts1[2][0]+pts1[3][0])/4
+			center_y1 = (pts1[0][1]+pts1[1][1]+pts1[2][1]+pts1[3][1])/4
+			
+			center_x2 = (pts2[0][0]+pts2[1][0]+pts2[2][0]+pts2[3][0])/4
+			center_y2 = (pts2[0][1]+pts2[1][1]+pts2[2][1]+pts2[3][1])/4
+
+			print("CamShift Player 1 X is %d, Y is %d"%(center_x1, center_y1))
+			print("CamShift Player 2 X is %d, Y is %d"%(center_x2, center_y2))
+
 
 		# show the frame and record if the user presses a key
 		cv2.imshow("frame", frame)

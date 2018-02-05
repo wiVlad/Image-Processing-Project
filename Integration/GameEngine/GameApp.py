@@ -67,20 +67,33 @@ class PongGame(Widget):
             self.player1.score += 1
             self.serve_ball(vel=(-4, 0))
 
-        actions = self.actionQueue.get()
-        x = map(actions[0],-250,250,50,550)
-        y = map(actions[1],-250,250,50,550)
-        print((x,y))
+        (id,x,y) = self.actionQueue.get()
+        y = int(460 - y);
+        y = int(map(y,0,460,0,700))
+        x = int(map(x,25,600,0,750))
+
+        #print("Game X/Y Values:")
+        #print((id,x,y))
         #print(actions)
 
-        if x < self.width / 3:
+        #if x < self.width / 3:
+        if(id == 1):
             self.player1.center_y = y
-         #   self.player1.x = x
-        if x > self.width - self.width / 3:
+            self.player1.x = x
+        #if x > self.width - self.width / 3:
+        if(id == 2):
             self.player2.center_y = y
-         #   self.player2.x = x
+            self.player2.x = x
+        # print("\n Y and X player 1:")
+        # print(self.player1.center_y)
+        # print(self.player1.x)
+        # print("Y and X player 2:")
+        # print(self.player2.center_y)
+        # print(self.player2.x)
+
 
     def on_touch_move(self, touch):
+        print(touch)
         if touch.x < self.width / 3:
             self.player1.center_y = touch.y
             self.player1.x = touch.x

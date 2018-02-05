@@ -17,3 +17,9 @@
 
 # ImageProcessor DiskCache 
 **/App_Data/cache/
+Integration/ImageProc/__pycache__/camShift.cpython-36.pyc
+*.pyc
+*.pyc
+*.mp4
+*.jpg
+*.pyc
