@@ -68,9 +68,9 @@ class PongGame(Widget):
             self.serve_ball(vel=(-4, 0))
 
         (id,x,y) = self.actionQueue.get()
-        y = int(460 - y);
+        y = int(470 - y);
         y = int(map(y,0,460,0,700))
-        x = int(map(x,25,600,0,750))
+        x = int(map(x,25,615,0,1150))
 
         #print("Game X/Y Values:")
         #print((id,x,y))

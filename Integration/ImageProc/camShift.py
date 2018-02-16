@@ -44,6 +44,7 @@ class CamShift():
 		self.roiPts1 = []
 		self.roiPts2 = []
 		self.inputMode = False
+		Detect = False
 
 		# if the video path was not supplied, grab the reference to the
 		# camera
@@ -90,6 +91,7 @@ class CamShift():
 				(r2, roiBox2) = cv2.CamShift(backProj2, roiBox2, termination)
 				pts1 = np.int0(cv2.boxPoints(r1))
 				pts2 = np.int0(cv2.boxPoints(r2))
+				
 				cv2.polylines(self.frame, [pts1], True, (0, 255, 0), 2)
 				cv2.polylines(self.frame, [pts2], True, (0, 255, 0), 2)
 
