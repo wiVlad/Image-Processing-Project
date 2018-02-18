@@ -140,7 +140,6 @@ class DetectMeanShift():
 
 		roiBox1 = None
 		roiBox2 = None
-
 		# keep looping over the frames
 		while True:
 			# grab the current frame
@@ -152,6 +151,7 @@ class DetectMeanShift():
 			if not grabbed:
 				break
 
+			timer = cv2.getTickCount()
 			# if the see if the ROI has been computed
 			if roiBox1 is not None and roiBox2 is not None:
 				# convert the current frame to the HSV color space
@@ -211,11 +211,12 @@ class DetectMeanShift():
 				# 	  (center_x2, center_y2))
 
 			# show the frame and record if the user presses a key
-			timer = cv2.getTickCount()
+			
 
 			# Calculate Frames per second (FPS)
-			fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer);
+			fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
 			cv2.putText(self.frame, "FPS : " + str(int(fps)), (100,50), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (50,170,50), 2)
+
 			key = cv2.waitKey(1) & 0xFF
 			cv2.imshow("frame", self.frame)
 
@@ -275,6 +276,7 @@ class DetectMeanShift():
 					roiBox2 = (tl2[0], tl2[1], int(r[1]), int(r[1]))
 
 					self.Detect = True
+
 
 			# if the 'q' key is pressed, stop the loop
 			elif key == ord("q"):
