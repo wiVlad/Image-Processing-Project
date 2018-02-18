@@ -5,17 +5,18 @@
     canvas:
         Ellipse:
             pos: self.pos
-            size: self.size          
+            size: self.size
 
 <PongPaddle>:
-    size: 120, 120
+    size: 50, 50
     canvas:
         Ellipse:
             pos:self.pos
             size:self.size
+        Color:
+            rgba: 1, 0.5, 0.4, 1
 
 <PongGame>:
-    actionQueue: 
     ball: pong_ball
     player1: player_left
     player2: player_right
@@ -24,7 +25,7 @@
         Rectangle:
             pos: self.center_x-5, 0
             size: 10, self.height
-     
+    
     Label:
         font_size: 70  
         center_x: root.width / 4
@@ -36,6 +37,13 @@
         center_x: root.width * 3 / 4
         top: root.top - 50
         text: str(root.player2.score)
+
+    Label:
+        font_size: 50  
+        center_x: root.width/2
+        top: root.top - 10
+        text: str("The Banana Benders")
+        color: 1,0.8,0,1
     
     PongBall:
         id: pong_ball
@@ -45,6 +53,7 @@
         id: player_left
         x: root.x
         center_y: root.center_y
+
         
     PongPaddle:
         id: player_right

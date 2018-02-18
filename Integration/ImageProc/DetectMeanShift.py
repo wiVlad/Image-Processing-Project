@@ -7,14 +7,15 @@ import argparse
 import cv2
 import collections
 
-class DetectCamShift():
+
+class DetectMeanShift():
 	# initialize the current frame of the video, along with the list of
 	# ROI points along with whether or not this is input mode
 
 	def detection(self, img):
 		print("Trying to detect")
 		# Convert the given frame to HSV color space:
-		hsv_img     = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
+		hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
 		# Histogram calculation for thresholding(not neccesery in the real code)
 
@@ -25,48 +26,49 @@ class DetectCamShift():
 
 		# Thresholding by saturation values: (we take the saturation values to be in range [140,256])
 		# TODO think how to automatically calculate the thresholding values (not really neccesery)
-		lb      = np.array([0 ,140 ,0])
-		ub      = np.array([179, 256 , 256])
-		mask    = cv2.inRange(hsv_img,lb,ub)
-		res     = cv2.bitwise_and(hsv_img,hsv_img,mask = mask)
-		res_sat = res[:,:,1]                                  # isolate the saturation dimension
-		#plt.imshow(res[:,:,1])
-		#plt.show()
+		lb = np.array([0, 140, 0])
+		ub = np.array([179, 256, 256])
+		mask = cv2.inRange(hsv_img, lb, ub)
+		res = cv2.bitwise_and(hsv_img, hsv_img, mask=mask)
+		# isolate the saturation dimension
+		res_sat = res[:, :, 1]
+		# plt.imshow(res[:,:,1])
+		# plt.show()
 
 		# Otsu Thresholding:
 
-		ret,mask2 = cv2.threshold(res_sat,0,255,cv2.THRESH_OTSU)
-		#plt.imshow(mask2+hsv_img_sat)
-		#plt.show()
+		ret, mask2 = cv2.threshold(res_sat, 0, 255, cv2.THRESH_OTSU)
+		# plt.imshow(mask2+hsv_img_sat)
+		# plt.show()
 
 		# Erosion & Dilation:
 		# TODO try other kernels
-		kernel = np.ones((5,5),np.uint8) 
-		open_img = cv2.morphologyEx(mask2,cv2.MORPH_CLOSE, kernel)
-		#plt.imshow(open_img)
-		#plt.show()
-
+		kernel = np.ones((5, 5), np.uint8)
+		open_img = cv2.morphologyEx(mask2, cv2.MORPH_CLOSE, kernel)
+		# plt.imshow(open_img)
+		# plt.show()
 
 		# Median filtering:
 
-		filt = cv2.medianBlur(open_img,11)
-		#plt.imshow(filt)
-		#plt.show()
+		filt = cv2.medianBlur(open_img, 11)
+		# plt.imshow(filt)
+		# plt.show()
 
 		# Hough Transform
 
-		circles     = cv2.HoughCircles(filt, cv2.HOUGH_GRADIENT, 4, 500, param1=100, param2=50, minRadius=30, maxRadius=100)
+		circles = cv2.HoughCircles(filt, cv2.HOUGH_GRADIENT, 4,
+								   500, param1=100, param2=50, minRadius=50, maxRadius=800)
 		# TODO calibrate these parameters when using the real system
 
 		# print(circles)
-		#print(np.shape(circles))
+		# print(np.shape(circles))
 
 		# The loop imposed to wait until exactly 2 circles are detected
-		if (np.shape(circles)) and (np.shape(circles)[1]==2):          
-		#  TODO try to seperate the detection for each player individually
+		if (np.shape(circles)) and (np.shape(circles)[1] == 2):
+			#  TODO try to seperate the detection for each player individually
 			circles = np.uint16(np.around(circles))
-			x,y= np.zeros((2,2))
-			r = np.zeros((2,1))
+			x, y = np.zeros((2, 2))
+			r = np.zeros((2, 1))
 			circle_num = 0
 			for i in circles[0, :]:
 				print(i)
@@ -82,31 +84,25 @@ class DetectCamShift():
 						x[circle_num-1] = i[0]
 						y[circle_num-1] = i[1]
 						r[circle_num-1] = i[2]
-				circle_num   += 1
-	            # draw the outer circle
-	            #cv.circle(filt, (i[0], i[1]), i[2], (0, 255, 0), 2)
-	            # draw the center of the circle
-	            #cv.circle(filt, (i[0], i[1]), 2, (0, 0, 255), 3)
-			#cv.imshow('detected circles',filt)
-			print("number of circles")
-			print(circle_num)
-			print("X is")
-			print(x)
-			print("Y is")
-			print(y)
-			return x,y,r
-	    # in case no circles is found or number of circles is different than 2 return empty cell in all fields
-		else:
-			x,y,r = [],[],[]
-			print("Nothing!")
-			return x,y,r
+				circle_num += 1
+				# draw the outer circle
+				#cv.circle(filt, (i[0], i[1]), i[2], (0, 255, 0), 2)
+				# draw the center of the circle
+				#cv.circle(filt, (i[0], i[1]), 2, (0, 0, 255), 3)
+						#cv.imshow('detected circles',filt)
 
+			return x, y, r
+		# in case no circles is found or number of circles is different than 2 return empty cell in all fields
+		else:
+			x, y, r = [], [], []
+			print("Nothing!")
+			return x, y, r
 
 	def __init__(self, queue):
 		# construct the argument parse and parse the arguments
 		ap = argparse.ArgumentParser()
 		ap.add_argument("-v", "--video",
-			help = "path to the (optional) video file")
+						help="path to the (optional) video file")
 		args = vars(ap.parse_args())
 
 		# grab the reference to the current frame, list of ROI
@@ -116,14 +112,14 @@ class DetectCamShift():
 		self.roiPts2 = []
 		self.inputMode = False
 		self.Detect = False
+		self.fist_radius_add = 30
 
 		self.MedQueueX1 = collections.deque([])
 		self.MedQueueX2 = collections.deque([])
 		self.MedQueueY1 = collections.deque([])
 		self.MedQueueY2 = collections.deque([])
 
-
-		self.MedNum = 50
+		self.MedNum = 5
 		# if the video path was not supplied, grab the reference to the
 		# camera
 		if not args.get("video", False):
@@ -141,7 +137,7 @@ class DetectCamShift():
 		# a maximum of ten iterations or movement by a least one pixel
 		# along with the bounding box of the ROI
 		termination = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 20, 1)
-		
+
 		roiBox1 = None
 		roiBox2 = None
 
@@ -150,7 +146,6 @@ class DetectCamShift():
 			# grab the current frame
 
 			(grabbed, self.frame) = camera.read()
-			
 
 			# check to see if we have reached the end of the
 			# video
@@ -162,25 +157,31 @@ class DetectCamShift():
 				# convert the current frame to the HSV color space
 				# and perform mean shift
 				hsv = cv2.cvtColor(self.frame, cv2.COLOR_BGR2HSV)
-            
-				backProj1 = cv2.calcBackProject([hsv], [1], roiHist1, [140, 256], 1)        
-				backProj2 = cv2.calcBackProject([hsv], [1], roiHist2, [140, 256], 1)
-				
+
+				backProj1 = cv2.calcBackProject(
+					[hsv], [1], roiHist1, [140, 256], 1)
+				backProj2 = cv2.calcBackProject(
+					[hsv], [1], roiHist2, [140, 256], 1)
+
 				# apply cam shift to the back projection, convert the
 				# points to a bounding box, and then draw them
-				(r1, roiBox1) = cv2.CamShift(backProj1, roiBox1, termination)
-				(r2, roiBox2) = cv2.CamShift(backProj2, roiBox2, termination)
-				pts1 = np.int0(cv2.boxPoints(r1))
-				pts2 = np.int0(cv2.boxPoints(r2))
-				cv2.polylines(self.frame, [pts1], True, (0, 255, 0), 2)
-				cv2.polylines(self.frame, [pts2], True, (0, 255, 0), 2)
+				(r1, roiBox1) = cv2.meanShift(backProj1, roiBox1, termination)
+				(r2, roiBox2) = cv2.meanShift(backProj2, roiBox2, termination)
 
-				center_x1 = (pts1[0][0]+pts1[1][0]+pts1[2][0]+pts1[3][0])/4
-				center_y1 = (pts1[0][1]+pts1[1][1]+pts1[2][1]+pts1[3][1])/4
-				
-				center_x2 = (pts2[0][0]+pts2[1][0]+pts2[2][0]+pts2[3][0])/4
-				center_y2 = (pts2[0][1]+pts2[1][1]+pts2[2][1]+pts2[3][1])/4
+				x1, y1, w1, h1 = roiBox1
+				x2, y2, w2, h2 = roiBox2
 
+				cv2.rectangle(self.frame, (x1, y1), (x1+w1, y1+h1), 255, 2)
+				cv2.rectangle(self.frame, (x2, y2), (x2+w2, y2+h2), 255, 2)
+
+				center_x1 = x1 + w1/2
+				center_y1 = y1 + h1/2
+
+				center_x2 = x2 + w2/2
+				center_y2 = y2 + h2/2
+
+				# center_x2 = (pts2[0][0]+pts2[1][0]+pts2[2][0]+pts2[3][0])/4
+				# center_y2 = (pts2[0][1]+pts2[1][1]+pts2[2][1]+pts2[3][1])/4
 
 				if len(self.MedQueueX1) == self.MedNum:
 					self.MedQueueX1.popleft()
@@ -199,43 +200,55 @@ class DetectCamShift():
 					med_y1 = np.median(self.MedQueueY1)
 					med_y2 = np.median(self.MedQueueY2)
 
-				queue.put((1,med_x1,med_y1))
-				queue.put((2,med_x2,med_y2))
-				print("CamShift Player 1 X is %d, Y is %d"%(center_x1, center_y1))
-				print("CamShift Player 2 X is %d, Y is %d"%(center_x2, center_y2))
+				queue.put((1, center_x1, med_y1))
+				queue.put((2, center_x2, med_y2))
 
-			
+				# queue.put((1, med_x1, center_y1))
+				# queue.put((2, med_x2, center_y2))
+				# print("CamShift Player 1 X is %d, Y is %d" %
+				# 	  (center_x1, center_y1))
+				# print("CamShift Player 2 X is %d, Y is %d" %
+				# 	  (center_x2, center_y2))
+
 			# show the frame and record if the user presses a key
+			timer = cv2.getTickCount()
+
+			# Calculate Frames per second (FPS)
+			fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer);
+			cv2.putText(self.frame, "FPS : " + str(int(fps)), (100,50), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (50,170,50), 2)
 			key = cv2.waitKey(1) & 0xFF
 			cv2.imshow("frame", self.frame)
 
 			if not self.Detect:
 				orig = self.frame.copy()
 				#cv2.imshow("frame", self.frame)
-				x,y,r = self.detection(self.frame)
-				if not (r ==[]):
+				x, y, r = self.detection(self.frame)
+				if not (r == []):
+					r += self.fist_radius_add
 					# The condition states that we wait until exactly 2 players are found.
 					# Built the range of interest(roi) as the square that blocks the Hough circle.
-					self.roiPts1 = [(int(x[0]-r[0]),int(y[0]-r[0])),(int(x[0]+r[0]),int(y[0]-r[0])),(int(x[0]-r[0]),int(y[0]+r[0])),(int(x[0]+r[0]),int(y[0]+r[0]))]
-					self.roiPts2 = [(int(x[1] - r[1]),int( y[1] - r[1])), (int(x[1] + r[1]),int(y[1] - r[1])),(int(x[1] - r[1]),int(y[1] + r[1])),
-					       (int(x[1] + r[1]), int(y[1] + r[1]))]
+					self.roiPts1 = [(int(x[0]-r[0]), int(y[0]-r[0])), (int(x[0]+r[0]), int(y[0]-r[0])),
+									(int(x[0]-r[0]), int(y[0]+r[0])), (int(x[0]+r[0]), int(y[0]+r[0]))]
+					self.roiPts2 = [(int(x[1] - r[1]), int(y[1] - r[1])), (int(x[1] + r[1]), int(y[1] - r[1])), (int(x[1] - r[1]), int(y[1] + r[1])),
+									(int(x[1] + r[1]), int(y[1] + r[1]))]
 					self.roiPts1 = np.array(self.roiPts1)
 					self.roiPts2 = np.array(self.roiPts2)
-
 
 					# maxY = np.shape(orig)(3)
 
 					self.roiPts1[self.roiPts1 < 0] = 0
 					self.roiPts2[self.roiPts2 < 0] = 0
-					# self.roiPts1[self.roiPts1 > maxY] = maxY
-					# self.roiPts2[self.roiPts2 > maxY] = maxY
-					print("ROI PTS")
-					print(self.roiPts1)
-					print(self.roiPts2)
 
+					[Y_size, X_size, _] = np.shape(orig)
 
-					s1 = self.roiPts1.sum(axis = 1)
-					s2 = self.roiPts2.sum(axis = 1)
+					self.roiPts1[:, 0][self.roiPts1[:, 0] > X_size] = X_size
+					self.roiPts1[:, 1][self.roiPts1[:, 1] > Y_size] = Y_size
+
+					self.roiPts2[:, 0][self.roiPts2[:, 0] > X_size] = X_size
+					self.roiPts2[:, 1][self.roiPts2[:, 1] > Y_size] = Y_size
+
+					s1 = self.roiPts1.sum(axis=1)
+					s2 = self.roiPts2.sum(axis=1)
 					tl1 = self.roiPts1[np.argmin(s1)]
 					tl2 = self.roiPts2[np.argmin(s2)]
 					br1 = self.roiPts1[np.argmax(s1)]
@@ -256,21 +269,18 @@ class DetectCamShift():
 					# bounding box
 					roiHist1 = cv2.calcHist([roi1], [1], None, [256], [140, 255], False)
 					roiHist1 = cv2.normalize(roiHist1, roiHist1, 0, 255, cv2.NORM_MINMAX)
-					roiBox1 = (tl1[0], tl1[1], br1[0], br1[1])
+					roiBox1 = (tl1[0], tl1[1], int(r[0]), int(r[0]))
 					roiHist2 = cv2.calcHist([roi2], [1], None, [256], [140, 255], False)
 					roiHist2 = cv2.normalize(roiHist2, roiHist2, 0, 255, cv2.NORM_MINMAX)
-					roiBox2 = (tl2[0], tl2[1], br2[0], br2[1])
+					roiBox2 = (tl2[0], tl2[1], int(r[1]), int(r[1]))
 
 					self.Detect = True
-
 
 			# if the 'q' key is pressed, stop the loop
 			elif key == ord("q"):
 				break
 
-			#queue.put((0,0,0))
-
-			
+			# queue.put((0,0,0))
 
 		# cleanup the camera and close any open windows
 		camera.release()

@@ -4,7 +4,7 @@ from kivy.properties import NumericProperty, ReferenceListProperty,\
     ObjectProperty
 from kivy.vector import Vector
 from kivy.clock import Clock
-
+import math
 
 # Tutorial - https://www.youtube.com/watch?v=B79miUFD_ss 
 # Docs - https://kivy.org/docs/guide/basic.html
@@ -15,13 +15,16 @@ def map(x, in_min,  in_max,  out_min, out_max):
 class PongPaddle(Widget):
     score = NumericProperty(0)
 
-    def bounce_ball(self, ball):
+    def bounce_ball(self, ball, speed):
         if self.collide_widget(ball):
             vx, vy = ball.velocity
             offset = (ball.center_y - self.center_y) / (self.height / 2)
             bounced = Vector(-1 * vx, vy)
-            vel = bounced * 1.1
+            finalSpeed = max(min(speed/2, 1.5), 1)
+            print(finalSpeed)
+            vel = bounced*finalSpeed
             ball.velocity = vel.x, vel.y + offset
+
 
 
 class PongBall(Widget):
@@ -38,6 +41,8 @@ class PongGame(Widget):
     ball = ObjectProperty(None)
     player1 = ObjectProperty(None)
     player2 = ObjectProperty(None)
+    P1_paddle_position = [(0, 0), (0, 0)]
+    P2_paddle_position = [(0, 0), (0, 0)]
 
     def __init__(self,queue):
         print("YEAH!")
@@ -48,12 +53,31 @@ class PongGame(Widget):
         self.ball.center = self.center
         self.ball.velocity = vel
 
+    def updateLocation(self, player, position):
+        if(player == 1):
+            self.P1_paddle_position[0] = self.P1_paddle_position[1]
+            self.P1_paddle_position[1] = position
+        else:
+            self.P2_paddle_position[0] = self.P2_paddle_position[1]
+            self.P2_paddle_position[1] = position
+
+    def getSpeed(self, pos):
+        (x0, y0) = pos[0]
+        (x1, y1) = pos[1]
+        dx = x1-x0
+        dy = y1-y0
+        Speed = math.sqrt(dx*dx+dy*dy)
+        return Speed
+
+
     def update(self, dt):
         self.ball.move()
 
         # bounce of paddles
-        self.player1.bounce_ball(self.ball)
-        self.player2.bounce_ball(self.ball)
+        self.player1.bounce_ball(
+            self.ball, self.getSpeed(self.P1_paddle_position))
+        self.player2.bounce_ball(
+            self.ball, self.getSpeed(self.P2_paddle_position))
 
         # bounce ball off bottom or top
         if (self.ball.y < self.y) or (self.ball.top > self.top):
@@ -68,7 +92,7 @@ class PongGame(Widget):
             self.serve_ball(vel=(-4, 0))
 
         (id,x,y) = self.actionQueue.get()
-        y = int(470 - y);
+        y = int(470 - y)
         y = int(map(y,0,460,0,700))
         x = int(map(x,25,615,0,1150))
 
@@ -93,11 +117,13 @@ class PongGame(Widget):
 
 
     def on_touch_move(self, touch):
-        print(touch)
+        # print(touch)
         if touch.x < self.width / 3:
+            self.updateLocation(1, (touch.x, touch.y))
             self.player1.center_y = touch.y
             self.player1.x = touch.x
         if touch.x > self.width - self.width / 3:
+            self.updateLocation(2, (touch.x, touch.y))
             self.player2.center_y = touch.y
             self.player2.x = touch.x
 
