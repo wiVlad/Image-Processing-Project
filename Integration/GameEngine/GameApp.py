@@ -45,7 +45,6 @@ class PongGame(Widget):
     P2_paddle_position = [(0, 0), (0, 0)]
 
     def __init__(self,queue):
-        print("YEAH!")
         Widget.__init__(self)
         self.actionQueue = queue
 
