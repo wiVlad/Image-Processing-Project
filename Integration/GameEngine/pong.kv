@@ -18,6 +18,25 @@
         Color:
             rgba: 1, 1, 0, 1
 
+
+<PongObstacle>:
+    size: 20, 20 
+    canvas:
+        Ellipse:
+            pos: self.pos
+            size: self.size
+        Color:
+            rgba: 1,0.8,0.5,1
+
+<PongSpeeder>:
+    size: 30, 30 
+    canvas:
+        Ellipse:
+            pos: self.pos
+            size: self.size
+        Color:
+            rgba: 0.5,0.1,0.5,1
+
 <PongGame>:
     ball: pong_ball
     player1: player_left

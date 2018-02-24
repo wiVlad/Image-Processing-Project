@@ -177,8 +177,14 @@ class PongGame(Widget):
             self.player2.x = x - 5
 
         if(id == 3):
+            print("GOT RED PKAK")
+            print(x,y)
             self.obs.x = x;
             self.obs.y = y
+            with self.canvas:
+                Color(1, 0, 1, 1)
+                d = 20
+                Ellipse(pos=(self.pos), size=(d, d))
 
         if(id == 4):
             self.speeder.x = x
