@@ -1,55 +1,83 @@
-import numpy as np
-import argparse
 import cv2
-import collections
+import numpy as np
+from collections import deque
 
-ap = argparse.ArgumentParser()
-args = vars(ap.parse_args())
-if not args.get("video", False):
-    camera = cv2.VideoCapture(0)
 
-# otherwise, load the video
-else:
-    camera = cv2.VideoCapture(args["video"])
+camera = cv2.VideoCapture(0)
 cv2.namedWindow("frame")
-originalFrame = None
-flagFrame = 0
+frame_stack = []
+max_frames = 1         # Number of frames to mediate
+j = 0
+Detect = False
 
 while True:
-    (grabbed, frameTest) = camera.read()
-    hsv_frame = cv2.cvtColor(frameTest, cv2.COLOR_BGR2HSV)
-    bw_frame = cv2.cvtColor(frameTest, cv2.COLOR_BGR2GRAY)
-    if not grabbed:
-        print ("error")
-        break
-    lb = np.array([0, 100, 0])
-    ub = np.array([10, 256, 256])
-    mask = cv2.inRange(hsv_frame, lb, ub)
-    lb = np.array([160, 100, 0])
-    ub = np.array([179, 256, 256])
-    mask1 = cv2.inRange(hsv_frame, lb, ub)
-    mask = mask | mask1
+    if Detect:
+        cv2.waitKey(1000)
+        Detect = False
 
-    sub = cv2.bitwise_and(hsv_frame, hsv_frame, mask=mask)
-    sub1 = sub[:, :, 1]
-    #sub = cv2.adaptiveThreshold(sub, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2)
-    sub = cv2.medianBlur(sub1, 11)
-    kernel = np.ones((5, 5), np.uint8)
-    #sub = cv2.dilate(sub, kernel, iterations = 1)
-    sub = cv2.morphologyEx(sub, cv2.MORPH_CLOSE, kernel)
-    ret, sub = cv2.threshold(sub, 50, 255, cv2.THRESH_BINARY)
-    circles = cv2.HoughCircles(sub, cv2.HOUGH_GRADIENT, 4,
-                                10, param1=100, param2=50, minRadius=50, maxRadius=100)
-    # #sub = cv2.adaptiveThreshold(frameTest - originalFrame, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
-    if (np.shape(circles)):
-        circles = np.around(circles)
-        print(circles)
-        for i in circles[0, :]:
-            print(i)
-            cv2.circle(sub, (i[0], i[1]), i[2], (150, 150, 0), 2)
-    cv2.imshow("frame", sub)
-    key = cv2.waitKey(1) & 0xFF
-    if key == ord("q"):
+    # grab the current frame
+    (grabbed, frame) = camera.read()
+
+    cv2.waitKey(1)
+
+    if not grabbed:
         break
+    #cv2.imshow('frame',frame)
+    j += 1
+    img_hsv=cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+    # red lower mask (0-10)
+    lower_red = np.array([0,50,50])
+    upper_red = np.array([5,255,255])
+    mask0 = cv2.inRange(img_hsv, lower_red, upper_red)              # TODO adjust the red mask values
+    # red upper mask (170-180)
+    lower_red = np.array([172,50,50])
+    upper_red = np.array([179,255,255])
+    mask1 = cv2.inRange(img_hsv, lower_red, upper_red)
+    # join masks
+    maskRed = mask0 + mask1
+
+    # green mask (55-65)
+    lower_green = np.array([57, 50, 50])
+    upper_green = np.array([63, 255, 255])
+    maskGreen = cv2.inRange(img_hsv, lower_green, upper_green)  # TODO adjust the green mask values
+
+    # blue lower mask (107-117)
+    lower_blue = np.array([100, 50, 50])
+    upper_blue = np.array([120, 255, 255])
+    maskBlue = cv2.inRange(img_hsv, lower_blue, upper_blue)  # TODO adjust the blue mask values
+
+    # set my output img to zero everywhere except my mask
+    output_img = frame.copy()
+    output_img[np.where((maskRed==0)&(maskGreen==0)&(maskBlue==0))] = 0
+
+    # or your HSV image, which I believe is what you want
+    output_hsv = img_hsv.copy()
+    output_hsv[np.where((maskRed==0)&(maskGreen==0)&(maskBlue==0))] = 0
+    mod_frame = output_hsv[:,:,1]
+
+    if j>max_frames:
+        frame_stack.append(mod_frame)
+        med = np.median(frame_stack,axis=0)
+        med = np.uint8(med)
+        ret, med = cv2.threshold(med, 100, 255, cv2.THRESH_BINARY)     # TODO calibrate the binary threshold
+
+        circles = cv2.HoughCircles(med, cv2.HOUGH_GRADIENT, 4, 800, param1=100, param2=50, minRadius=30, maxRadius=100)
+        print(circles)
+        if np.shape(circles): #TODO and (np.shape(circles)[1] == 1):
+            Detect = True
+            circles = np.uint16(np.around(circles))
+            print(circles)
+            for i in circles[0, :]:
+                # draw the outer circle
+                 cv2.circle(med, (i[0], i[1]), i[2], (0, 255, 0), 2)
+                # draw the center of the circle
+                 cv2.circle(med, (i[0], i[1]), 2, (0, 0, 255), 3)
+        cv2.imshow('frame', med)
+        cv2.waitKey(1)
+        frame_stack =[]
+        j = 0
+    frame_stack.append(mod_frame)
+
 camera.release()
 cv2.destroyAllWindows()
