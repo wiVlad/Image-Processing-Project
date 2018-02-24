@@ -38,8 +38,8 @@ while True:
     maskRed = mask0 + mask1
 
     # green mask (55-65)
-    lower_green = np.array([57, 50, 50])
-    upper_green = np.array([63, 255, 255])
+    lower_green = np.array([40, 128, 0])
+    upper_green = np.array([70, 255, 127])
     maskGreen = cv2.inRange(img_hsv, lower_green, upper_green)  # TODO adjust the green mask values
 
     # blue lower mask (107-117)
@@ -62,7 +62,7 @@ while True:
         med = np.uint8(med)
         ret, med = cv2.threshold(med, 100, 255, cv2.THRESH_BINARY)     # TODO calibrate the binary threshold
 
-        circles = cv2.HoughCircles(med, cv2.HOUGH_GRADIENT, 4, 800, param1=100, param2=50, minRadius=30, maxRadius=100)
+        circles = cv2.HoughCircles(med, cv2.HOUGH_GRADIENT, 4, 800, param1=100, param2=100, minRadius=7, maxRadius=50)
         print(circles)
         if np.shape(circles): #TODO and (np.shape(circles)[1] == 1):
             Detect = True
