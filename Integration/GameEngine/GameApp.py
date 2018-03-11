@@ -169,7 +169,7 @@ class PongGame(Widget):
 
         #if x < self.width / 3:
         if(id == 1):
-            self.player1.center_y = y
+            self.player1.center_y = y - 80
             self.player1.x = x + 170
         #if x > self.width - self.width / 3:
         if(id == 2):
@@ -179,8 +179,8 @@ class PongGame(Widget):
         if(id == 3):
             print("GOT RED PKAK")
             print(x,y)
-            self.obs.x = x;
-            self.obs.y = y
+            self.obs.x = x + 80
+            self.obs.y = y - 80
             with self.canvas:
                 Color(1, 0, 1, 1)
                 d = 20
